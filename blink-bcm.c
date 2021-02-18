@@ -1,7 +1,9 @@
 #include <bcm2835.h>
+#include <unistd.h>
 
 // Blinks on RPi pin GPIO 11
-#define PIN RPI_GPIO_P1_11
+//#define PIN RPI_GPIO_P1_11
+#define PIN 17
 
 int main(int argc, char **argv)
 {
@@ -22,13 +24,13 @@ int main(int argc, char **argv)
 	bcm2835_gpio_write(PIN, HIGH);
 	
 	// wait a bit
-	delay(500);
+	delayMicroseconds(500);
 	
 	// turn it off
 	bcm2835_gpio_write(PIN, LOW);
 	
 	// wait a bit
-	delay(500);
+	usleep(500);
     }
 
     return 0;

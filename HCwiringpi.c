@@ -30,6 +30,7 @@ float getCM() {
         long startTime = micros();
         while(digitalRead(ECHO) == HIGH);
         long travelTime = micros() - startTime;
+        //diffT=1000000 * ( endT.tv_sec - startT.tv_sec ) + endT.tv_usec - startT.tv_usec;
         //printf("%ld\n",travelTime);
         //Get distance in cm
         float distance = (float)travelTime *0.017;

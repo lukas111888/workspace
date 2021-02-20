@@ -3,7 +3,7 @@
 
 // Blinks on RPi pin GPIO 11
 //#define PIN RPI_GPIO_P1_11
-#define PIN 17
+#define PIN 20
 
 int main(int argc, char **argv)
 {

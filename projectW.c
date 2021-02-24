@@ -8,27 +8,53 @@
 
  
 #define bool int
+#define limitWarning 8
 
+//GPIO MAP
 #define leftTRIG 24
 #define leftECHO 25
 #define rightTRIG 20
 #define rightECHO 21
-#define limitWarning 8
-#define BUTTON 3
+#define signL 13
+#define signR 19
+#define signB 26
+#define ledL 27
+#define ledR 22
+#define vedioL 0
+#define vedioR 5
+#define vedioB 6
 
- 
+
+//Global Variable
+int lightL=FALSE, lightR=FALSE,lightB=FALSE; 
+
 void setup() { 
     
-    wiringPiSetupGpio();
-    pinMode(BUTTON, INPUT); 
+    wiringPiSetupGpio();   
+
+    pinMode(signL, INPUT); 
+    //pullUpDnControl (signL, PUD_DOWN);
+    pinMode(signR, INPUT); 
+    //pullUpDnControl (signR, PUD_DOWN);
+    pinMode(signB, INPUT); 
+    //pullUpDnControl (signB, PUD_DOWN);
+    pinMode(ledL, OUTPUT);
+    pinMode(ledR, OUTPUT);
+    pinMode(vedioL, OUTPUT);
+    pinMode(vedioR, OUTPUT);
+    pinMode(vedioB, OUTPUT);
+    digitalWrite(ledL, LOW);
+    digitalWrite(ledR, LOW);
+
+
     pinMode(leftTRIG, OUTPUT);
     pinMode(leftECHO, INPUT);
     pinMode(rightTRIG, OUTPUT);
     pinMode(rightECHO, INPUT);
-
-
     digitalWrite(rightTRIG, LOW);
     digitalWrite(leftTRIG, LOW);
+
+
 
 
     usleep(10000);
@@ -37,11 +63,33 @@ void setup() {
 }
 
 
-void lightLED(void) 
+void turnLRB(void) 
 {
-    static int x = 1; // store number of times pressed. Use static
-    // to retain the state on multiple calls
-    printf("Button pressed %d  times! LED on\n",x++);
+    usleep(1000);//Eliminate fluctuate
+    digitalWrite(vedioL, digitalRead(signL));
+    digitalWrite(vedioR, digitalRead(signR));
+    digitalWrite(vedioB, digitalRead(signB));
+
+/**
+    if (digitalRead(signL)==HIGH)
+    {
+        //digitalWrite(ledL, HIGH);
+        digitalWrite(vedioL, HIGH);
+    }
+
+    if (digitalRead(signR)==HIGH)
+    {
+        //digitalWrite(ledR, HIGH);
+        digitalWrite(vedioR, HIGH);
+    }
+
+    if (digitalRead(signB)==HIGH)
+    {
+        digitalWrite(vedioB, HIGH);
+    }
+**/   
+
+    //printf("Button pressed %d  times! LED on\n",lightL);
 }
 
 void *threadLEFTwarning(void *warning)
@@ -78,11 +126,12 @@ void *threadLEFTwarning(void *warning)
         if (distance>limitWarning)
         {
             *leftwarning=FALSE;
+            digitalWrite(ledL, LOW);
         }
         else 
         {            
             *leftwarning=TRUE;
-            usleep(1000000); // 延迟关闭
+            digitalWrite(ledL, HIGH);
         }             
         usleep(100000);       
     }    
@@ -124,11 +173,12 @@ void *threadRIGHTwarning(void *warning)
         if (distance>limitWarning)
         {
             *rightwarning=FALSE;
+            digitalWrite(ledR, LOW);
         }
         else 
         {            
             *rightwarning=TRUE;
-            usleep(1000000); // 延迟关闭
+            digitalWrite(ledR, HIGH);
         }             
         usleep(100000);       
     }    
@@ -137,11 +187,12 @@ void *threadRIGHTwarning(void *warning)
 
  
 int main(void) {
+
  
     bool leftwarning=FALSE,rightwarning=FALSE;
     setup();
 
-    wiringPiISR(BUTTON, INT_EDGE_RISING, &lightLED);
+    wiringPiISR(signL, INT_EDGE_BOTH, &turnLRB);
 
 
     // create the threads, pass the reference, address of the function and data
@@ -162,6 +213,22 @@ int main(void) {
 
     while(1)
     {
+        /**
+        if (lightL==TRUE)
+        {
+            printf("left side warning\n");
+        }
+        else if (lightR ==TRUE)
+        {
+            printf("right side warning\n");            
+        }
+        
+        else if (lightL==TRUE || lightR ==TRUE)
+        {
+
+            usleep(100000); // 延迟关闭       
+        }
+        **/
         if (leftwarning ==TRUE)
         {
             printf("left side warning\n");
@@ -171,7 +238,8 @@ int main(void) {
             printf("right side warning\n");
             
         }
-        usleep(100000); // 延迟关闭
+        usleep(100000);
+        
         /**
         else
         {

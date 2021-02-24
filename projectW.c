@@ -25,8 +25,7 @@
 #define vedioB 6
 
 
-//Global Variable
-int lightL=FALSE, lightR=FALSE,lightB=FALSE; 
+ 
 
 void setup() { 
     
@@ -70,26 +69,6 @@ void turnLRB(void)
     digitalWrite(vedioR, digitalRead(signR));
     digitalWrite(vedioB, digitalRead(signB));
 
-/**
-    if (digitalRead(signL)==HIGH)
-    {
-        //digitalWrite(ledL, HIGH);
-        digitalWrite(vedioL, HIGH);
-    }
-
-    if (digitalRead(signR)==HIGH)
-    {
-        //digitalWrite(ledR, HIGH);
-        digitalWrite(vedioR, HIGH);
-    }
-
-    if (digitalRead(signB)==HIGH)
-    {
-        digitalWrite(vedioB, HIGH);
-    }
-**/   
-
-    //printf("Button pressed %d  times! LED on\n",lightL);
 }
 
 void *threadLEFTwarning(void *warning)
@@ -213,22 +192,7 @@ int main(void) {
 
     while(1)
     {
-        /**
-        if (lightL==TRUE)
-        {
-            printf("left side warning\n");
-        }
-        else if (lightR ==TRUE)
-        {
-            printf("right side warning\n");            
-        }
         
-        else if (lightL==TRUE || lightR ==TRUE)
-        {
-
-            usleep(100000); // 延迟关闭       
-        }
-        **/
         if (leftwarning ==TRUE)
         {
             printf("left side warning\n");
@@ -239,14 +203,7 @@ int main(void) {
             
         }
         usleep(100000);
-        
-        /**
-        else
-        {
-            printf("no warning   %d\n",leftwarning);
-        }
-        **/
-        //usleep(100000);
+
     }
     
     

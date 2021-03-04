@@ -1,14 +1,14 @@
 #include <signal.h>
 #include <stdio.h>
 #include <wiringPi.h>
-#define redLED 0
+#define redLED 27
 volatile sig_atomic_t signal_received = 0;
 void sigint_handler(int signal) {
     signal_received = signal;
 }
 int main(void) {
     signal(SIGINT, sigint_handler);
-    wiringPiSetup();
+    wiringPiSetupGpio();
     pinMode(redLED, OUTPUT);
     printf("\nSignalValue:   %d\n",signal_received);
     printf("Press CTRL-C to exit.\n");

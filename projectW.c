@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <wiringPi.h> 
+#include <gps.h>
 
  
 #define bool int
@@ -30,11 +31,11 @@
 void setup() { 
     
     wiringPiSetupGpio();   
-
+    //pullUpDnControl (signL, PUD_UP);
     pinMode(signL, INPUT); 
-    //pullUpDnControl (signL, PUD_DOWN);
+    //pullUpDnControl (signR, PUD_UP);
     pinMode(signR, INPUT); 
-    //pullUpDnControl (signR, PUD_DOWN);
+    
     pinMode(signB, INPUT); 
     //pullUpDnControl (signB, PUD_DOWN);
     pinMode(ledL, OUTPUT);
@@ -44,6 +45,8 @@ void setup() {
     pinMode(vedioB, OUTPUT);
     digitalWrite(ledL, LOW);
     digitalWrite(ledR, LOW);
+    digitalWrite(vedioL, HIGH);
+    digitalWrite(vedioR, HIGH);
 
 
     pinMode(leftTRIG, OUTPUT);
@@ -53,6 +56,7 @@ void setup() {
     digitalWrite(rightTRIG, LOW);
     digitalWrite(leftTRIG, LOW);
 
+    gps_init(); // initialize the device
 
 
 
@@ -61,13 +65,43 @@ void setup() {
 
 }
 
+void *threadGPS(void *recordGPS)
+{
+    loc_t *record=(loc_t *)recordGPS;
+    loc_t gps; // a location structure
+    while(1)
+    {
+        gps_location(&gps); // determine the location data
+        if (gps.latitude != 0 && gps.longitude != 0 )
+        {
+            *record = gps;
+        }
+        printf("The RPi location is (%lf,%lf)\n", gps.latitude, gps.longitude);
+        printf("http://maps.google.com/maps?q=%lf,%lf\n",record->latitude, record->longitude);
+        sleep(1);
+    }
+    return 0;
+}
 
 void turnLRB(void) 
 {
-    usleep(1000);//Eliminate fluctuate
-    digitalWrite(vedioL, digitalRead(signL));
-    digitalWrite(vedioR, digitalRead(signR));
-    digitalWrite(vedioB, digitalRead(signB));
+    usleep(2000);//Eliminate fluctuate
+    if (digitalRead(signL) != digitalRead(signR))
+    {
+        digitalWrite(vedioL, digitalRead(signL));
+        digitalWrite(vedioR, digitalRead(signR));
+        
+    }
+
+    else 
+    {
+        sleep(0.8);
+        digitalWrite(vedioL, HIGH);
+        digitalWrite(vedioR, HIGH);
+
+    }
+
+    
 
 }
 
@@ -169,10 +203,11 @@ int main(void) {
 
  
     bool leftwarning=FALSE,rightwarning=FALSE;
+    loc_t recordGPS;
     setup();
 
     wiringPiISR(signL, INT_EDGE_BOTH, &turnLRB);
-
+    wiringPiISR(signR, INT_EDGE_BOTH, &turnLRB);
 
     // create the threads, pass the reference, address of the function and data
     // pthread_create() returns 0 on the successful creation of a thread
@@ -189,6 +224,12 @@ int main(void) {
         return 1;
     }
 
+    pthread_t thread2;
+    if(pthread_create(&thread2, NULL, &threadGPS, &recordGPS)!=0){
+        printf("Failed to create the thread" );
+        return 1;
+    }
+
 
     while(1)
     {
@@ -201,6 +242,14 @@ int main(void) {
         {
             printf("right side warning\n");
             
+        }
+        if (digitalRead(signL)==HIGH)
+        {
+            printf("Left side camera is ON\n");
+        }
+        if (digitalRead(signR)==HIGH)
+        {
+            printf("Right side camera is ON\n");
         }
         usleep(100000);
 
